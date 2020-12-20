@@ -1,0 +1,21 @@
+#!/usr/bin/expect -d  
+# 获取 ip user_name paasword 参数
+set ip [lindex $argv 0]
+set user [lindex $argv 1]
+set pw [lindex $argv 2]
+set timeout 60
+# 执行 ssh秘钥 拷贝命令
+spawn ssh-copy-id $user@$ip
+expect {
+    "*y/n" {send "y\r"; exp_continue}
+    "*yes/no" {send "yes\r"; exp_continue}
+    # 上面这行这行如果注释了，我们需要在/etc/ssh/ssh_config 将# StrictHostKeyChecking ask 修改为 StrictHostKeyChecking no。
+    "password:" {send "$pw\r"}
+}
+expect eof
+#将脚本sshkeygen.exp复制到远程主机
+spawn scp -p ./sshkeygen.exp  $user@$ip:~
+expect {
+    "password:" {send "$pw\r"}
+}
+expect eof
